@@ -4,7 +4,7 @@ from logging import getLogger
 logger = getLogger("SessionTracker")
 
 class ConfigSettings:
-    def __init__(self, identifier, appPaths=None, URLS=None) -> None:
+    def __init__(self, identifier, appPaths=None, URLS=None, webApp="") -> None:
         self.id = identifier
 
         if appPaths is None: self.appPaths = {}
@@ -12,6 +12,8 @@ class ConfigSettings:
 
         if URLS is None: self.URLS = {}
         else: self.URLS = URLS.copy()
+
+        self.webApp = webApp
     
     def __repr__(self) -> str:
         return "ConfigSettings{}".format(str(tuple(self.appPaths.keys())))
@@ -21,7 +23,7 @@ class ConfigSettings:
         for (app, path) in zip(self.appPaths.keys(), self.appPaths.values()):
             formatted += f"\n    {app}: {path}"
             
-            if path.endswith("chrome.exe"):
+            if app == self.webApp:
                 for (webpage, link) in zip(self.URLS.keys(), self.URLS.values()):
                     formatted += f"\n        {webpage}: {link}"
         return formatted
@@ -62,7 +64,7 @@ def delete_config(id):
     with open(configPath) as db:
         db.pop(id)
 
-configPath = r"ConfigSettings\Config"
+configPath = r"Source\ConfigSettings\Config"
 
 def main():
     appPaths = {
@@ -75,8 +77,8 @@ def main():
         "docs": r"https://docs.google.com/document/u/0/",
         "plan": r"https://docs.google.com/document/d/1u8TLwlRFtRz2CajuCusf8AAwMHtLh721LaSC9-JXBnY/edit#heading=h.ch4bstwr9nt1 "
             }
-    con = ConfigSettings("kurslar", appPaths, chromeURLS)
-    #save_config(con)
+    con = ConfigSettings("kurslar", appPaths=appPaths, URLS=chromeURLS, webApp="Chrome")
+    save_config(con)
     #open_config("kurslar")
 
 if __name__ == "__main__":

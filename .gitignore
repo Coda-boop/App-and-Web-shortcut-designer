@@ -1,3 +1,4 @@
 Source/ConfigSettings/*
 .vscode/
 __pycache__/
+output/Root/ConfigSettings/*

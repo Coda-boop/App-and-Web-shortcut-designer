@@ -28,8 +28,6 @@ class Session:
         self.open_processes = {}
         self.opened_pids = []
 
-        self.logPath = r"C:\Users\Aarni\Documents\NAPythonProjects\SessionTracker38\Log.txt"
-
         self.startTime = None
         self.endTime = None
         self.sessionLen = None
@@ -39,13 +37,13 @@ class Session:
 
         if self.config.appPaths:
             for app, path in zip(self.config.appPaths.keys(), self.config.appPaths.values()):
-                if path.endswith("chrome.exe") and "chrome.exe" in (i.name() for i in process_iter()): continue
+                if app == self.config.webApp and path.split("\\")[-1] in (i.name() for i in process_iter()): continue
                 self.open_processes[app] = Popen(path, shell=False)
                 self.opened_pids.append(self.open_processes[app].pid)
 
-        # Open relevant tabs in Chrome
+        # Open relevant tabs in the specified web application
         if "chrome.exe" in (i.name() for i in process_iter()) and self.config.URLS:
-            webbrowser.register("Chrome_", None, webbrowser.BackgroundBrowser(self.config.appPaths["Chrome"]))
+            webbrowser.register("Chrome_", None, webbrowser.BackgroundBrowser(self.config.appPaths[self.config.webApp]))
             for url in self.config.URLS.values():
                 webbrowser.get("Chrome_").open_new_tab(url)
         self.startTime = datetime.now()
@@ -55,7 +53,7 @@ class Session:
     def writeLog(self):
         """Save session information"""
 
-        with open(self.logPath, "a") as logFile:
+        with open(logPath, "a") as logFile:
             logTxt = "\n" + str(self.startTime) + " | " + str(self.endTime) + " | " + str(self.sessionLen) + " | " + \
                 self.exeType
             logFile.write(logTxt)
