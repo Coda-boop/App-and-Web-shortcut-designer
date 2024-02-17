@@ -64,7 +64,7 @@ def delete_config(id):
     with open(configPath) as db:
         db.pop(id)
 
-configPath = r"Source\ConfigSettings\Config"
+configPath = r"ConfigSettings\Config"
 
 def main():
     appPaths = {
@@ -79,7 +79,7 @@ def main():
             }
     con = ConfigSettings("kurslar", appPaths=appPaths, URLS=chromeURLS, webApp="Chrome")
     save_config(con)
-    #open_config("kurslar")
+    open_config("kurslar")
 
 if __name__ == "__main__":
     main()

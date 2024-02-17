@@ -105,6 +105,9 @@ def main():
     basicConfig(level="INFO")  # Logging config
     logger.info(f"Program interpreter: {executable}")
 
+    with open(logPath) as x:
+        print(x.read())
+
     boot = datetime.fromtimestamp(boot_time())
     boot_distance = datetime.now() - boot
 
