@@ -42,8 +42,6 @@ class Help(ConfigInput):
         print(Edit.__doc__)
         print(AddConfig.__doc__)
 
-        #input()
-
 class Edit(ConfigInput):
     """\"edit\"
         Edit a specific configuration.
@@ -83,17 +81,18 @@ class EditConfig(Edit):
 class AddPath(EditConfig):
     def __init__(self, configID):
         super().__init__(configID)
-        self.basePrompt = "Enter the setting type (APP / URL) followed by name of new setting: "
+        self.basePrompt = "Enter the setting type (APP / URL / WEB) followed by name of new setting: "
         self.handleCommand = self.newApp
         self.comms = []
     
     def newApp(self, name):
         try:
-            if name[:3] == "APP":
+            if name[:3] == "APP" or name[:3] == "WEB":
                 EditApp(name[4:], self.config.id).runTime()
+                if name[:3] == "WEB":
+                    self.config.webApp = name[4:]
             elif name[:3] == "URL":
                 EditURL(name[4:], self.config.id).runTime()
-            #print(name][])
         except IndexError:
             return
 
@@ -111,7 +110,9 @@ class EditApp(EditConfig):
         elif comm == "EDIT":
             run = True
             while run:
-                newPath = input(f"Enter new filepath for {self.appID}: ").rstrip().replace("\"", "")
+                newPath = input(f"Enter new filepath for {self.appID}, or store as the web app with WEB: ").rstrip().replace("\"", "")
+                if newPath == "WEB":
+                    self.config.webApp = self.appID
                 if newPath.endswith(".exe"):
                     self.config.appPaths[self.appID] = newPath
                     run = False
@@ -173,7 +174,6 @@ class View(ConfigInput):
         print(Config.open_config(key))
 
     def give_ids(self):
-        #print(self.comms)
         for comm in self.comms:
             if comm == "ids": continue
             print(f"    ID: {comm}")
@@ -181,6 +181,8 @@ class View(ConfigInput):
 
 
 def main():
+    from sys import argv
+    Config.setupConfig(argv)
     x = ConfigInput()
     x.runTime()
 

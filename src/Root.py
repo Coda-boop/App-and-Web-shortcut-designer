@@ -5,6 +5,7 @@ from psutil import process_iter, boot_time
 from datetime import datetime, time as datetime_time, timedelta
 from sys import argv, executable
 from logging import getLogger, basicConfig
+from pathlib import Path
 
 import Config
 import ConfigSession
@@ -22,13 +23,11 @@ class Session:
         """Initialize object"""
         self.config = config
 
-        print("Welcome, Aarnold.")
+        print("Welcome to the Shortcut Handler.")
         self.exeType = "Auto  " if autoExe else "Manual"
 
         self.open_processes = {}
         self.opened_pids = []
-
-        self.logPath = r"C:\Users\Aarni\Documents\NAPythonProjects\SessionTracker38\Log.txt"
 
         self.startTime = None
         self.endTime = None
@@ -39,13 +38,13 @@ class Session:
 
         if self.config.appPaths:
             for app, path in zip(self.config.appPaths.keys(), self.config.appPaths.values()):
-                if path.endswith("chrome.exe") and "chrome.exe" in (i.name() for i in process_iter()): continue
+                if app == self.config.webApp and path.split("\\")[-1] in (i.name() for i in process_iter()): continue
                 self.open_processes[app] = Popen(path, shell=False)
                 self.opened_pids.append(self.open_processes[app].pid)
 
-        # Open relevant tabs in Chrome
+        # Open relevant tabs in the specified web application
         if "chrome.exe" in (i.name() for i in process_iter()) and self.config.URLS:
-            webbrowser.register("Chrome_", None, webbrowser.BackgroundBrowser(self.config.appPaths["Chrome"]))
+            webbrowser.register("Chrome_", None, webbrowser.BackgroundBrowser(self.config.appPaths[self.config.webApp]))
             for url in self.config.URLS.values():
                 webbrowser.get("Chrome_").open_new_tab(url)
         self.startTime = datetime.now()
@@ -55,11 +54,11 @@ class Session:
     def writeLog(self):
         """Save session information"""
 
-        with open(self.logPath, "a") as logFile:
+        with open(logPath, "a") as logFile:
             logTxt = "\n" + str(self.startTime) + " | " + str(self.endTime) + " | " + str(self.sessionLen) + " | " + \
                 self.exeType
             logFile.write(logTxt)
-        logger.info(" Session info logged to \"{}\"".format(self.logPath))
+        logger.info(f"Session info logged to \"{logPath}\"")
 
     def time_diff(self, start, end):
         """Calculate difference between datetime A and datetime B"""
@@ -88,7 +87,7 @@ class Session:
         for process in self.open_processes.values():
             if process.pid not in self.opened_pids: continue
             system("Taskkill /PID %d /F" % process.pid)
-        print("Have a nice day, Aarnold.")
+        logger.info(f"Session ended: {self.endTime}")
         input()
 
 def open_session(id, exeType):
@@ -104,8 +103,14 @@ def open_session(id, exeType):
         session.terminate(logTime=False)
 
 def main():
-    basicConfig(level="INFO")  # Logging config
+    global logPath
+    basicConfig(level="DEBUG")  # Logging config
     logger.info(f"Program interpreter: {executable}")
+    logger.debug(f"Running script: {argv[0]}")
+
+    rel_logPath = logPath
+    logPath = str(Path(argv[0]).parent / Path(rel_logPath))
+    Config.setupConfig(argv)
 
     boot = datetime.fromtimestamp(boot_time())
     boot_distance = datetime.now() - boot
@@ -116,7 +121,7 @@ def main():
     sessionID = ""
 
     while True:
-        sessionID = input("Enter session or exit: ")
+        sessionID = input("Enter session identifier, config, or exit: ")
         if sessionID == "config":
             ConfigSession.main()
             config_options = Config.get_config_ids()
@@ -124,7 +129,6 @@ def main():
         if sessionID == "exit":
             break
         if sessionID not in config_options: 
-            print("Select a valid session ID: ")
             continue
 
         open_session(sessionID, exeType)
