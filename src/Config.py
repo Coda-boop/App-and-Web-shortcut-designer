@@ -1,7 +1,9 @@
-from shelve import open
+import shelve
 from logging import getLogger
 
 logger = getLogger("SessionTracker")
+
+configPath = r"ConfigSettings\Config"
 
 class ConfigSettings:
     def __init__(self, identifier, appPaths=None, URLS=None, webApp="") -> None:
@@ -16,7 +18,7 @@ class ConfigSettings:
         self.webApp = webApp
     
     def __repr__(self) -> str:
-        return "ConfigSettings{}".format(str(tuple(self.appPaths.keys())))
+        return f"ConfigSettings {tuple(self.appPaths.keys())}"
 
     def __str__(self) -> str:
         formatted = "Configuration identifier: " + self.id
@@ -43,30 +45,36 @@ class ConfigSettings:
         self.URLS.pop(name)
     
 def save_config(config):
-    with open(configPath) as db:
+    with shelve.open(configPath) as db:
         db[config.id] = config
 
 def open_config(id):
     assert id in get_config_ids()
-    with open(configPath) as db:
+    with shelve.open(configPath) as db:
         return db[id]
 
 def get_config_ids():
-    with open(configPath) as db:
+    with shelve.open(configPath) as db:
         return list(db.keys())
 
 def get_configs():
-    with open(configPath) as db:
+    with shelve.open(configPath) as db:
         return dict(zip(db.keys(), db.values()))
 
 def delete_config(id):
     assert id in get_config_ids()
-    with open(configPath) as db:
+    with shelve.open(configPath) as db:
         db.pop(id)
 
-configPath = r"ConfigSettings\Config"
+def setupConfig(argv):
+    global configPath
+    from pathlib import Path
+    configPath = str(Path(argv[0]).parent / Path(configPath))
 
 def main():
+    from sys import argv as a
+    setupConfig(a)
+
     appPaths = {
             "Chrome": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
             "Obsidian": r"C:\Users\Aarni\AppData\Local\Obsidian\Obsidian.exe",
@@ -78,7 +86,7 @@ def main():
         "plan": r"https://docs.google.com/document/d/1u8TLwlRFtRz2CajuCusf8AAwMHtLh721LaSC9-JXBnY/edit#heading=h.ch4bstwr9nt1 "
             }
     con = ConfigSettings("kurslar", appPaths=appPaths, URLS=chromeURLS, webApp="Chrome")
-    save_config(con)
+    #save_config(con)
     open_config("kurslar")
 
 if __name__ == "__main__":

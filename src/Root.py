@@ -5,6 +5,7 @@ from psutil import process_iter, boot_time
 from datetime import datetime, time as datetime_time, timedelta
 from sys import argv, executable
 from logging import getLogger, basicConfig
+from pathlib import Path
 
 import Config
 import ConfigSession
@@ -22,7 +23,7 @@ class Session:
         """Initialize object"""
         self.config = config
 
-        print("Welcome, Aarnold.")
+        print("Welcome to the Shortcut Handler.")
         self.exeType = "Auto  " if autoExe else "Manual"
 
         self.open_processes = {}
@@ -57,7 +58,7 @@ class Session:
             logTxt = "\n" + str(self.startTime) + " | " + str(self.endTime) + " | " + str(self.sessionLen) + " | " + \
                 self.exeType
             logFile.write(logTxt)
-        logger.info(" Session info logged to \"{}\"".format(self.logPath))
+        logger.info(f"Session info logged to \"{logPath}\"")
 
     def time_diff(self, start, end):
         """Calculate difference between datetime A and datetime B"""
@@ -86,7 +87,7 @@ class Session:
         for process in self.open_processes.values():
             if process.pid not in self.opened_pids: continue
             system("Taskkill /PID %d /F" % process.pid)
-        print("Have a nice day, Aarnold.")
+        logger.info(f"Session ended: {self.endTime}")
         input()
 
 def open_session(id, exeType):
@@ -102,11 +103,14 @@ def open_session(id, exeType):
         session.terminate(logTime=False)
 
 def main():
-    basicConfig(level="INFO")  # Logging config
+    global logPath
+    basicConfig(level="DEBUG")  # Logging config
     logger.info(f"Program interpreter: {executable}")
+    logger.debug(f"Running script: {argv[0]}")
 
-    with open(logPath) as x:
-        print(x.read())
+    rel_logPath = logPath
+    logPath = str(Path(argv[0]).parent / Path(rel_logPath))
+    Config.setupConfig(argv)
 
     boot = datetime.fromtimestamp(boot_time())
     boot_distance = datetime.now() - boot
@@ -117,7 +121,7 @@ def main():
     sessionID = ""
 
     while True:
-        sessionID = input("Enter session or exit: ")
+        sessionID = input("Enter session identifier, config, or exit: ")
         if sessionID == "config":
             ConfigSession.main()
             config_options = Config.get_config_ids()
@@ -125,7 +129,6 @@ def main():
         if sessionID == "exit":
             break
         if sessionID not in config_options: 
-            print("Select a valid session ID: ")
             continue
 
         open_session(sessionID, exeType)

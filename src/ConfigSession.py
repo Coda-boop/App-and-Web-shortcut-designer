@@ -42,8 +42,6 @@ class Help(ConfigInput):
         print(Edit.__doc__)
         print(AddConfig.__doc__)
 
-        #input()
-
 class Edit(ConfigInput):
     """\"edit\"
         Edit a specific configuration.
@@ -95,7 +93,6 @@ class AddPath(EditConfig):
                     self.config.webApp = name[4:]
             elif name[:3] == "URL":
                 EditURL(name[4:], self.config.id).runTime()
-            #print(name][])
         except IndexError:
             return
 
@@ -177,7 +174,6 @@ class View(ConfigInput):
         print(Config.open_config(key))
 
     def give_ids(self):
-        #print(self.comms)
         for comm in self.comms:
             if comm == "ids": continue
             print(f"    ID: {comm}")
@@ -185,6 +181,8 @@ class View(ConfigInput):
 
 
 def main():
+    from sys import argv
+    Config.setupConfig(argv)
     x = ConfigInput()
     x.runTime()
 
