@@ -1,4 +1,7 @@
 src/ConfigSettings/*
+src/ConfigSettings/*
+src/ConfigSettings/*
+
 .vscode/
 __pycache__/
-output/ShortcutHandler/ConfigSettings/*
+ShortcutHandler/ConfigSettings/*
